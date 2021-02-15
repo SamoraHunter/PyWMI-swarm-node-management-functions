@@ -1,0 +1,1943 @@
+
+import os
+import datetime
+import shutil
+from datetime import datetime
+import wmi
+import random as rand
+from random import random
+import time
+from random import seed
+from random import randint
+from datetime import datetime
+from IPython.display import clear_output
+from playsound import playsound
+from random import uniform, random, choice, sample
+import math
+import re
+import numpy.random as np
+import imaplib
+import smtplib
+import time
+import imaplib
+import email
+from win10toast import ToastNotifier
+from plyer.utils import platform
+from plyer import notification
+import PySimpleGUI as sg
+
+
+def defineLaptopServer():
+    try:
+        connectionLAPTOPSERVER = wmi.connect_server (
+            server="DESKTOP-2BK8OA0",
+            user=baseWinUserName,
+            password=basePWString
+        )
+    except:
+        print("Failed to create laptopserver")
+
+    try:
+        cLAPTOPSERVER = wmi.WMI (wmi=connectionLAPTOPSERVER)
+    except:
+        # OfflineServerList.append("cLAPTOPSERVER")
+        print("cLAPTOPSERVER DOWN")
+    return cLAPTOPSERVER
+
+def defineDESKTOPSERVERTWOServer():
+    try:
+        connectionDESKTOPSERVERTWO = wmi.connect_server (
+            server="DESKTOPSERVERTWO-PC",
+            user=USERNAMEDESKTOPSERVERTWO,
+            password=basePWString
+        )
+    except:
+        print("Failed to create DESKTOPSERVERTWO server")
+    try:
+        cDESKTOPSERVERTWO = wmi.WMI (wmi=connectionDESKTOPSERVERTWO)
+    except:
+        OfflineServerList.append("cDESKTOPSERVERTWO")
+        print("cDESKTOPSERVERTWO DOWN")
+    return cDESKTOPSERVERTWO
+
+def defineLocalServer():
+    #
+    try:
+        cLOCAL = wmi.WMI()
+    except:
+        print("failed to define local server")
+        OfflineServerList.append("cLOCAL")
+    return cLOCAL
+
+
+# defineLocalServer()
+
+
+def defineLeopardServer():
+
+    try:
+        connectionMSILEOPARD = wmi.connect_server (
+            server="DESKTOP-GO7FBU9",
+            user=baseWinUserName,
+            password=MSIPWString
+        )
+    except:
+        print("Failed to create connectionMSILEOPARD server")
+
+
+    try:
+        cMSILEOPARD = wmi.WMI (wmi=connectionMSILEOPARD)
+        return cMSILEOPARD
+    except:
+        OfflineServerList.append("cMSILEOPARD")
+        print("cMSILEOPARD DOWN")
+
+
+
+
+def indexInAlreadyLaunchedList(newAccount):
+    for text in alreadyLaunchedList:
+        if newAccount.split("0,0,0,")[1].split(":")[0] in text:
+            return True
+    else:
+        return False
+
+def getSysInfo(wmiService = None):
+    result = {}
+    if wmiService == None:
+        wmiService = wmi.WMI()
+    # cpu
+    for cpu in wmiService.Win32_Processor():
+        timestamp = time.strftime('%a, %d %b %Y %H:%M:%S', time.localtime())
+        result['cpuPercent'] = cpu.loadPercentage
+    # memory
+    cs = wmiService.Win32_ComputerSystem()
+    os = wmiService.Win32_OperatingSystem()
+    result['memTotal'] = int(int(cs[0].TotalPhysicalMemory ) /1024 /1024)
+    result['memFree'] = int(int(os[0].FreePhysicalMemory ) /1024)
+    # disk
+    result['diskTotal'] = 0
+    result['diskFree'] = 0
+    for disk in wmiService.Win32_LogicalDisk(DriveType=3):
+        result['diskTotal'] += int(disk.Size)
+        result['diskFree'] += int(disk.FreeSpace)
+    result['diskTotal'] = int(result['diskTotal' ] /1024 /1024)
+    result['diskFree'] = int(result['diskFree' ] /1024 /1024)
+    return result
+
+def displayServerSysInfo():
+    display("cLAPTOPSERVER")
+    print(getSysInfo(cLAPTOPSERVER))
+
+    display("cDESKTOPSERVERTWO")
+    print(getSysInfo(cDESKTOPSERVERTWO))
+
+    display("cLOCAL")
+    print(getSysInfo(cLOCAL))
+
+
+def displayRunningAccounts():
+
+    try:
+        cLAPTOPSERVER = defineLaptopServer()
+    except:
+        print("Laptop server down!")
+    cLOCAL = defineLocalServer()
+    if(DESKTOPSERVERTWOEnabled):
+        cDESKTOPSERVERTWO = defineDESKTOPSERVERTWOServer()
+    cMSILEOPARD = defineLeopardServer()
+
+
+    JarNumbercLAPTOPSERVER = 0
+    JarNumbercDESKTOPSERVERTWO = 0
+    JarNumbercLOCAL = 0
+    JarNumbercMSILEOPARD = 0
+    bad_assets = []
+
+    # defineConnections()
+    try:
+        for process in cLAPTOPSERVER.Win32_Process (name=ProcessEXEString):
+            JarNumbercLAPTOPSERVER = JarNumbercLAPTOPSERVER +1
+        print(str(JarNumbercLAPTOPSERVER) + " " + "on" + " " + "cLAPTOPSERVER")
+    except:
+        bad_assets.append("cLAPTOPSERVER")
+        print("Failed to define cLAPTOPSERVER")
+
+    if (DESKTOPSERVERTWOEnabled):
+        try:
+            cDESKTOPSERVERTWO = wmi.WMI(wmi=connectionDESKTOPSERVERTWO)
+            for process in cDESKTOPSERVERTWO.Win32_Process(name=ProcessEXEString):
+                JarNumbercDESKTOPSERVERTWO = JarNumbercDESKTOPSERVERTWO + 1
+            print(str(JarNumbercDESKTOPSERVERTWO) + " " + "on" + " " + "cDESKTOPSERVERTWO")
+        except Exception:
+            bad_assets.append("connectionDESKTOPSERVERTWO")
+            print("Failed to define connectionDESKTOPSERVERTWO")
+
+    try:
+
+        cMSILEOPARD = defineLeopardServer()
+
+        for process in cMSILEOPARD.Win32_Process(name=ProcessEXEString):
+            JarNumbercMSILEOPARD = JarNumbercMSILEOPARD + 1
+        print(str(JarNumbercMSILEOPARD) + " " + "on" + " " + "cMSILEOPARD")
+    except Exception:
+        bad_assets.append("connectionMSILEOPARD")
+        print("Failed to define connectionMSILEOPARD")
+
+    try:
+        for process in cLOCAL.Win32_Process(name=ProcessEXEString):
+            JarNumbercLOCAL = JarNumbercLOCAL + 1
+        print(str(JarNumbercLOCAL) + " " + "on" + " " + "cLOCAL")
+    except:
+        bad_assets.append("connectionLocal")
+        print("Failed to define cLOCAL")
+
+
+# displayRunningAccounts()
+# print(bad_assets)
+def listbaseWinUserNameDirectory():
+    DirectoryList = os.listdir("C:\\Users\\" + baseWinUserName)
+
+
+def laptopDirList():
+    machineName = "DESKTOP-2BK8OA0"
+
+
+def killAllJars():
+    displayRunningAccounts()
+    try:
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            process.Terminate()
+    except:
+        display("Failed to terminate on cLAPTOPSERVER")
+
+    try:
+        for process in defineDESKTOPSERVERTWOServer().Win32_Process(name=ProcessEXEString):
+            process.Terminate()
+    except:
+        display("Failed to terminate on cDESKTOPSERVERTWO")
+
+    try:
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+            process.Terminate()
+    except:
+        display("Failed to terminate on cMSILEOPARD")
+
+    try:
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            process.Terminate()
+    except:
+        display("Failed to terminate on cLOCAL")
+    displayRunningAccounts()
+
+
+def indexInAlreadyLaunchedList(newAccount):
+    for text in alreadyLaunchedList:
+        if newAccount.split("0,0,0,")[1].split(":")[0] in text:
+            return True
+    else:
+        return False
+
+
+def removeRDFiles():
+    try:
+        process_id, return_value = defineLaptopServer().Win32_Process.Create(CommandLine=cmdLineRDFiles)
+    except:
+        display("Failed to remove .removeRDFiles on cLAPTOPSERVER")
+
+    try:
+        process_id, return_value = defineDESKTOPSERVERTWOServer().Win32_Process.Create(CommandLine=cmdLineRDFiles)
+
+    except:
+        display("Failed to remove .removeRDFiles on cDESKTOPSERVERTWO")
+
+    try:
+        process_id, return_value = defineLocalServer().Win32_Process.Create(CommandLine=cmdLineRDFiles)
+
+    except:
+        display("Failed to remove .removeRDFiles on cLOCAL")
+
+    try:
+        process_id, return_value = defineLeopardServer().Win32_Process.Create(CommandLine=cmdLineRDFiles)
+
+    except:
+        display("Failed to remove .removeRDFiles on cMSILEOPARD")
+
+
+def readRunningAccIndexesForLog():
+    RunningAccIndexs = []
+
+    display("Reading running account indexes...")
+
+    # For each server
+    try:
+        RunningAccIndexs.append("LOCAL:")
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+
+            index = []
+            if (basePWString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+    except:
+        print("Failed read Local jars")
+
+    try:
+        RunningAccIndexs.append("Laptop:")
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+
+            index = []
+            if (basePWString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+    except:
+        print("Failed read laptopserver jars")
+
+    try:
+        for process in defineDESKTOPSERVERTWOServer().Win32_Process(name=ProcessEXEString):
+
+            if (basePWString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+            display(str(len(RunningAccIndexs)) + " " + "accounts currently online!")
+            clear_output(wait=True)
+    except:
+        print("Failed read DESKTOPSERVERTWO jars")
+
+    try:
+        RunningAccIndexs.append("MSI:")
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+
+            if (basePWString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+            display(str(len(RunningAccIndexs)) + " " + "accounts currently online!")
+            clear_output(wait=True)
+    except:
+        print("Failed read cMSILEOPARD jars")
+
+    return RunningAccIndexs
+
+
+def readRunningAccIndexes():
+    RunningAccIndexs = []
+
+    display("Reading running account indexes...")
+
+    # For each server
+    try:
+        # RunningAccIndexs.append("LOCAL:")
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+
+            index = []
+            if (BotAppCMDString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+    except:
+        print("Failed read Local jars")
+
+    try:
+        # RunningAccIndexs.append("Laptop:")
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+
+            index = []
+            if (BotAppCMDString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+    except:
+        print("Failed read laptopserver jars")
+
+    try:
+        for process in defineDESKTOPSERVERTWOServer().Win32_Process(name=ProcessEXEString):
+
+            if (BotAppCMDString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+            display(str(len(RunningAccIndexs)) + " " + "accounts currently online!")
+            clear_output(wait=True)
+    except:
+        print("Failed read DESKTOPSERVERTWO jars")
+
+    try:
+        # RunningAccIndexs.append("MSI:")
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+
+            if (BotAppCMDString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+            display(str(len(RunningAccIndexs)) + " " + "accounts currently online!")
+            clear_output(wait=True)
+    except:
+        print("Failed read cMSILEOPARD jars")
+
+    return RunningAccIndexs
+
+
+def readLocalRunningAccIndexes():
+    RunningLocalAccIndexs = []
+
+    display("Reading local running account indexes...")
+
+    # For each server
+    try:
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+
+            index = []
+            if (OSBString.replace("'", "") in process.Commandline):
+                index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+            if (index != []):
+                RunningAccIndexs.append(index)
+    except:
+        print("Failed read Local jars")
+
+    return RunningLocalAccIndexs
+
+
+def displayJarHandles():
+    for process in cLOCAL.Win32_Process(name=ProcessEXEString):
+        print("ID: {0}\nHandleCount: {1}\nProcessName: {2}\n".format(
+            process.ProcessId, process.HandleCount, process.Name
+        )
+        )
+
+
+def displayComputerMemory():
+    for j in cLOCAL.Win32_PerfFormattedData_PerfOS_Memory():
+        print(j)
+
+
+def displayJavaDetails():
+    for process in cLOCAL.Win32_Process(name=ProcessEXEString):
+        print("ID: {0}\nHandleCount: {1}\nProcessName: {2}\n\nThreadCount: {3}\nCreationDate: {4}".format(
+            process.ProcessId, process.HandleCount, process.Name, process.ThreadCount, process.CreationDate
+        )
+        )
+
+
+def memory():
+    result = cLOCAL.query("SELECT WorkingSet FROM Win32_PerfRawData_PerfProc_Process WHERE IDProcess=%d" % os.getpid())
+    return int(result[0].WorkingSet) / 1024 ** 2
+
+
+# memory()
+
+def displayJavaUserModeTime():
+    for process in cMSILEOPARD.Win32_Process(name=ProcessEXEString):
+        print("MEM: {0}\n".format(process.UserModeTime
+                                  ))
+
+
+def displayJavaUserModeTimeLeopard():
+    for process in cMSILEOPARD.Win32_Process(name=ProcessEXEString):
+        print("MEM: {0}\n".format(process.UserModeTime
+                                  ))
+
+
+def displayJavaHandleCount():
+    for process in cMSILEOPARD.Win32_Process(name=ProcessEXEString):
+        if process.HandleCount > 10:  # only processes with handle count above 1000
+            print(process.ProcessID, process.HandleCount, process.Name)
+
+
+def readAlreadyLaunchedList():
+    newlist = []
+
+    with open(launchLogDirectory, 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def hasIndexAlreadyBeenPrepared(index):
+    for integers in readAlreadyPreparedList():
+        if str(index) in integers:
+            print(str(index) + " " + " has already been prepared!")
+            return True
+
+    print(str(index) + " " + " has not already been prepared!")
+    return False
+
+
+def hasIndexAlreadyBeenLaunched(index):
+    for integers in readAlreadyLaunchedList():
+        if str(index) in integers:
+            print(str(index) + " " + " has already been launched!")
+            return True
+
+    print(str(index) + " " + " has not already been launched!")
+    return False
+
+
+def hasIndexAlreadyBeenAddedToRelaunch(index):
+    for integers in readAlreadyReLaunchedList():
+        if str(index) in integers:
+            print(str(index) + " " + " has already been appended to relaunch!")
+            return True
+
+    print(str(index) + " " + " has not already been appended to relaunch launch!")
+    return False
+
+
+def readAlreadyReLaunchedList():
+    newlist = []
+
+    with open(launchLogDirectory, 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def genListForManualLaunch():
+
+def appendMoreAccountsManually(index, start, end):
+    startIndexn = index
+    preparedAccListM = []
+    contentsCreatedAccs = readAlreadyPreparedList()
+    contentsLaunchedAccs = readAlreadyLaunchedList()
+    initStart = start
+    initEnd = end
+
+    for i in range(start, end):
+        clear_output(wait=True)
+        if (hasIndexAlreadyBeenPrepared(str(i + startIndexn)) == False):
+
+            if (hasIndexAlreadyBeenLaunched(i + startIndexn) == False):
+
+                n = randint(0, len(WLIST) - 1)
+                host = str(WLIST[n])
+                lineToAppend = str(
+                    APPENDLINE)
+                time.sleep(.1)
+                print("Finally Appending " + lineToAppend)
+                preparedAccListM.append(lineToAppend)
+
+            else:
+                time.sleep(.1)
+                print(str(i + startIndexn) + " " + "has already been launched..skipping")
+        else:
+            time.sleep(.1)
+            print(str(i + startIndexn) + " " + "has already been created...skipping")
+    time.sleep(2)
+    clear_output(wait=True)
+    print("from " + str(start) + " to " + str(end) + "     " + str(len(preparedAccListM)) + '\\' + str(
+        end - start) + " " + "Created!")
+    display(preparedAccListM)
+    print("Appending " + str(len(preparedAccListM)) + " extra accounts to file")
+    append_multiple_lines(PreparedAccListFile, preparedAccListM)
+    return (initEnd - initStart)
+
+
+def appendMoreAccountsManuallyOneHour(index, start, end):
+    startIndexn = index
+    preparedAccListM = []
+    contentsCreatedAccs = readAlreadyPreparedList()
+    contentsLaunchedAccs = readAlreadyLaunchedList()
+
+    for i in range(start, end):
+        clear_output(wait=True)
+        if (hasIndexAlreadyBeenPrepared(str(i + startIndexn)) == False):
+
+            if (hasIndexAlreadyBeenLaunched(i + startIndexn) == False):
+
+                n = randint(0, len(WLIST) - 1)
+                host = str(WLIST[n])
+                lineToAppend = str(
+                    APPENDLINE)
+                time.sleep(.1)
+                print("Finally Appending " + lineToAppend)
+                preparedAccListM.append(lineToAppend)
+
+            else:
+                time.sleep(.1)
+                print(str(i + startIndexn) + " " + "has already been launched..skipping")
+        else:
+            time.sleep(.1)
+            print(str(i + startIndexn) + " " + "has already been created...skipping")
+    time.sleep(2)
+    clear_output(wait=True)
+    print("from " + str(start) + " to " + str(end) + "     " + str(len(preparedAccListM)) + '\\' + str(
+        end - start) + " " + "Created!")
+    display(preparedAccListM)
+    print("Appending " + str(len(preparedAccListM)) + " extra accounts to file")
+    append_multiple_lines(
+        PreparedAccListFile + 'one-hour',
+        preparedAccListM)
+    # return(len(start - end))
+
+
+def appendMoreAccountsManuallyFromIndex(index, alreadyBeenLaunched):
+
+
+
+def readAlreadyPreparedList():
+    newlist = []
+
+    with open(PreparedAccListFile, 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+
+
+def getRecentHList():
+    # Read recent host list
+    RecentHList = readRecentHList()
+    # Read strip newlines from each element
+    RecentHList = list(map(lambda x: x.strip(), RecentHList))
+    # get last 55 most recent hosts
+    RecentHList = RecentHList[-53:]
+    return RecentHList
+
+
+def getNewW():
+    # initialise host
+    host = rand.choice(HListV2)
+    # print("Initial host: " + str(host))
+    RecentHList = getRecentHList()
+
+    while str(host) in RecentHList:
+        host = rand.choice(HListV2)
+        RecentHList = getRecentHList()
+    writeToRecentHostLog(host)
+    return host
+
+
+def readRecentHList():
+    newlist = []
+
+    with open(launchLogDirectory, 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def readRelaunchList():
+    newlist = []
+
+    with open(launchLogDirectory, 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def append_multiple_lines(file_name, lines_to_append):
+    # Open the file in append & read mode ('a+')
+    with open(file_name, "a+") as file_object:
+        appendEOL = False
+        # Move read cursor to the start of file.
+        file_object.seek(0)
+        # Check if file is not empty
+        data = file_object.read(100)
+        if len(data) > 0:
+            appendEOL = True
+        # Iterate over each string in the list
+        for line in lines_to_append:
+            # If file is not empty then append '\n' before first line for
+            # other lines always append '\n' before appending line
+            if (line not in readAlreadyPreparedList()):
+                if appendEOL == True:
+                    file_object.write("\n")
+                else:
+                    appendEOL = True
+                # Append element at the end of file
+                file_object.write(line)
+
+
+def terminate_process_id(self, process_id):
+    for process in self.Win32_Process(ProcessId=process_id):
+        print(process.ProcessId, process.Name)
+
+    try:
+        process.Terminate()
+        print("Process terminated successfully: %d" % process.ProcessId)
+    except:
+        print("There is no process running with id: %d" % process_id)
+
+
+def isIndexInRelaunchList(index):
+    for integers in readRelaunchList():
+        if str(index) in integers:
+            print(str(index) + " " + " is read to be relaunched!")
+            return True
+
+    print(str(index) + " " + " is not suitable to be relaunched")
+    return False
+
+
+def writeToLog(line):
+    file_path = launchLogDirectory
+    with open(file_path, 'a') as file:
+        file.write(line + "\n")
+
+
+def writeToRecentHostLog(line):
+    file_path = DIRECTORY + 'RecentHList.txt'
+    with open(file_path, 'a') as file:
+        file.write(str(line) + "\n")
+
+
+
+
+def getListOfProcessSortedByMemory():
+    '''
+    Get list of running process sorted by Memory Usage
+    '''
+    listOfProcObjects = []
+    # Iterate over the list
+    for proc in psutil.process_iter():
+        try:
+            # Fetch process details as dict
+            pinfo = proc.as_dict(attrs=['pid', 'name', 'username'])
+            pinfo['vms'] = proc.memory_info().vms / (1024 * 1024)
+            # Append dict to list
+            listOfProcObjects.append(pinfo);
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+
+    # Sort list of dict by key vms i.e. memory usage
+    listOfProcObjects = sorted(listOfProcObjects, key=lambda procObj: procObj['vms'], reverse=True)
+
+    return listOfProcObjects
+
+
+def measure_memory(process):
+    # w = wmi.WMI('.')
+    result = defineLocalServer().query("SELECT WorkingSetSize FROM Win32_Process WHERE ProcessID=" + str(process.pid))
+    print(result)
+    subset = result[0]
+    return "%.2f" % (float(subset.WorkingSetSize) / 1024. / 1024.)
+
+
+
+
+def relaunchFromLocalList():
+    localList = []
+
+    display("Reading running account indexes...")
+
+    # For each server
+
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+
+        index = []
+        if (OSBString.replace("'", "") in process.Commandline):
+            index = process.Commandline.split("0,0,0,")[1].split(":")[0]
+
+        if (index != []):
+            localList.append(index)
+
+    print(RunningAccIndexs)
+
+    print(len(localList))
+    if (localList != []):
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            process.Terminate()
+
+    displayRunningAccounts()
+    for index in localList:
+        print("relaunching" + " " + index)
+        singleRelaunchTutMine64(int(index))
+        sleep(30)
+
+
+
+
+
+
+def singleTestAGIV264(j):
+
+
+
+
+
+
+
+
+
+def singleRelaunchAGIV264(j):
+    startIndexn = 0
+    i = 1
+    n = getNewW()
+
+    singleUnit = (str(
+        osbCMDlinePre+' -mem ' + mem + ' -data 0'))
+    startup = defineLocalServer().Win32_ProcessStartup.new(ShowWindow=0)
+
+    process_id, return_value = defineLocalServer().Win32_Process.Create(CommandLine=singleUnit,
+                                                                        ProcessStartupInformation=startup)
+    # writeToLog(str(j))
+    display(singleUnit)
+
+
+
+
+def quickRelaunchListLocal(list):
+    for i in list:
+        singleRelaunchAGIV264(str(i))
+        time.sleep(30)
+
+
+
+
+def singleMSIRelaunchAGIV264(j):
+    startIndexn = 0
+    i = 1
+
+    n = getNewW()
+
+    singleUnit = (str(
+        osbCMDlinePre+'xmx flag'))
+    startup = defineLeopardServer().Win32_ProcessStartup.new(ShowWindow=0)
+
+    process_id, return_value = defineLeopardServer().Win32_Process.Create(CommandLine=singleUnit,
+                                                                          ProcessStartupInformation=startup)
+    # writeToLog(str(j))
+    display(singleUnit)
+
+
+def singleLAPTOPRelaunchAGIV264(j):
+    startIndexn = 0
+    i = 1
+
+    n = getNewW()
+
+    singleUnit = (str(
+        osbCMDlinePre+'xmx flag'))
+    startup = defineLaptopServer().Win32_ProcessStartup.new(ShowWindow=0)
+
+    process_id, return_value = defineLaptopServer().Win32_Process.Create(CommandLine=singleUnit,
+                                                                         ProcessStartupInformation=startup)
+    # writeToLog(str(j))
+    display(singleUnit)
+
+
+def killLocalProcessByIndex(index):
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        try:
+            if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                print("Killing " + str(index))
+                process.Terminate()
+
+        except:
+            print("index not found")
+
+
+def purgeAndTestYesterday(yesterday):
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        if (process.CreationDate[6:8] == yesterday):
+            process.terminate
+            singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+            print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(15)
+
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            if (process.CreationDate[6:8] == yesterday):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(15)
+
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            if (process.CreationDate[6:8] == yesterday):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(15)
+
+
+def displayDetailedRunningInfo():
+    print("Local:")
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        try:
+            print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+        except:
+            print("Skipping")
+    print("MSILaptop:")
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+              process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+              math.floor(int(process.WorkingSetSize) / 1000000))
+
+    print("Laptop")
+    for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+        print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+              process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+              math.floor(int(process.WorkingSetSize) / 1000000))
+
+
+def purgeAndByMemory(threshold):
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        mem = math.floor(int(process.WorkingSetSize) / 1000000)
+        if (mem < threshold and OSBString.replace("'", "") in process.Commandline):
+            process.terminate
+            singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+            print(" " + "MSI")
+            print((math.floor(str(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(60)
+    try:
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            mem = math.floor(int(process.WorkingSetSize) / 1000000)
+            if (mem < (threshold - 100) and OSBString.replace("'", "") in process.Commandline):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print(" " + "Laptop")
+                print((math.floor(str(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(60)
+    except:
+        print("failed to purge laptop")
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        mem = math.floor(int(process.WorkingSetSize) / 1000000)
+        if (mem < (threshold + 100) and OSBString.replace("'", "") in process.Commandline):
+            process.terminate
+            singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+            print(" " + "Local")
+            print((math.floor(str(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(60)
+
+
+def terminateAndRelaunchMSI():
+    try:
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+            mem = math.floor(int(process.WorkingSetSize) / 1000000)
+            if (OSBString.replace("'", "") in process.Commandline):
+                print("Killing " + str(str(process.Commandline.split("0,0,0,")[1].split(":")[0])))
+                process.terminate
+                print(" " + "MSI")
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(10)
+                singleMSIRelaunchAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                time.sleep(60)
+    except:
+        print("failed msi relaunch")
+
+
+def terminateAndRelaunchLaptop():
+    try:
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            mem = math.floor(int(process.WorkingSetSize) / 1000000)
+            if (OSBString.replace("'", "") in process.Commandline):
+                process.terminate
+                time.sleep(10)
+                singleLAPTOPRelaunchAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print(" " + "Laptop")
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(60)
+    except:
+        print("Failed Laptop relaunch")
+
+
+def terminateAndRelaunchLOCAL():
+    try:
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            mem = math.floor(int(process.WorkingSetSize) / 1000000)
+            if (OSBString.replace("'", "") in process.Commandline and process.Commandline.find(
+                    "1,1,0,1,0") != -1 and process.Commandline.find(OSBString) != -1 and process.Commandline.find(
+                    "Proxy") == -1):
+                try:
+                    process.terminate
+                    time.sleep(10)
+                    singleRelaunchAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+
+                    print(" " + "Local")
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    time.sleep(60)
+                except:
+                    print("Failed to terminate single on local")
+    except:
+        print("failed to relaunch all local")
+
+
+def terminateAndRelaunchMSIThreshold(Threshold):
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        mem = math.floor(int(process.WorkingSetSize) / 1000000)
+        if (OSBString.replace("'", "") in process.Commandline and mem < Threshold):
+            print("Killing " + str(str(process.Commandline.split("0,0,0,")[1].split(":")[0])))
+            process.terminate
+            print(" " + "MSI")
+            print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(10)
+            singleMSIRelaunchAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+            time.sleep(60)
+
+
+def terminateAndRelaunchLaptopThreshold(Threshold):
+    for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+        mem = math.floor(int(process.WorkingSetSize) / 1000000)
+        if (OSBString.replace("'", "") in process.Commandline and mem < Threshold):
+            process.terminate
+            time.sleep(10)
+            singleLAPTOPRelaunchAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+            print(" " + "Laptop")
+            print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(60)
+
+
+def terminateAndRelaunchLOCALThreshold(Threshold):
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        mem = math.floor(int(process.WorkingSetSize) / 1000000)
+        if (OSBString.replace("'", "") in process.Commandline and mem < Threshold and process.Commandline.find(
+                "1,1,0,1,0") != -1 and process.Commandline.find(OSBString) != -1 and process.Commandline.find(
+                "Proxy") == -1):
+            process.terminate
+            time.sleep(10)
+            singleRelaunchAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+
+            print(" " + "Local")
+            print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(60)
+
+
+def relaunchAll():
+    terminateAndRelaunchLOCAL()
+    terminateAndRelaunchMSI()
+    terminateAndRelaunchLaptop()
+
+
+def relaunchAllThreshold(Threshold):
+    terminateAndRelaunchLOCALThreshold(Threshold)
+    terminateAndRelaunchMSIThreshold(Threshold)
+    terminateAndRelaunchLaptopThreshold(Threshold)
+
+
+def relaunchLaptopAndMSI():
+    terminateAndRelaunchMSI()
+    terminateAndRelaunchLaptop()
+
+
+def purgeAndTestYesterday(yesterday):
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        if (process.CreationDate[6:8] == yesterday):
+            try:
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(25)
+            except:
+                print("failed" + process.Commandline.split("0,0,0,")[1].split(":")[0])
+
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            if (process.CreationDate[6:8] == yesterday):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(25)
+
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            if (process.CreationDate[6:8] == yesterday):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(25)
+
+
+def relaunchTestAccs():
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+
+        if (process.Commandline.find("1,1,0,1,0") == -1 and process.Commandline.find(
+                OSBString) != -1 and process.Commandline.find("Proxy") == -1):
+            process.terminate
+            singleRelaunchAGIV264(int(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+
+            print(process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(25)
+
+
+def getNewW():
+    a = rand.uniform(0, len(HListV2) - 1)
+    a = round(a)
+    host = HListV2[a]
+    # print(host)
+
+    return host
+
+
+def purgeAndByMemoryAboveThreshold(threshold):
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        mem = math.floor(int(process.WorkingSetSize) / 1000000)
+        if (mem > threshold and OSBString.replace("'", "") in process.Commandline):
+            process.terminate
+            singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+            print(" " + "MSI")
+            print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(60)
+    try:
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            mem = math.floor(str(process.WorkingSetSize) / 1000000)
+            if (mem > (threshold - 100) and OSBString.replace("'", "") in process.Commandline):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print(" " + "Laptop")
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(60)
+    except:
+        print("Failed to purge laptop")
+
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        mem = math.floor(int(process.WorkingSetSize) / 1000000)
+        if (mem > (threshold + 100) and OSBString.replace("'", "") in process.Commandline):
+            process.terminate
+            singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+            print(" " + "Local")
+            print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                  process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                  math.floor(int(process.WorkingSetSize) / 1000000))
+            time.sleep(60)
+
+
+def readAccCreatedOneHour():
+    newlist = []
+    remove_empty_lines(
+        PreparedAccListFile + 'one_hour.txt')
+    with open(PreparedAccListFile+'one_hour.txt',
+              'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def writeToLog(line):
+    file_path = launchLogDirectory
+    with open(file_path, 'a') as file:
+        file.write(line + "\n")
+
+
+
+def purgeAndTestYesterday(yesterday):
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        if (process.CreationDate[6:8] == yesterday):
+            try:
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(25)
+            except:
+                print("failed" + process.Commandline.split("0,0,0,")[1].split(":")[0])
+
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            if (process.CreationDate[6:8] == yesterday):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(25)
+
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            if (process.CreationDate[6:8] == yesterday):
+                process.terminate
+                singleTestAGIV264(str(process.Commandline.split("0,0,0,")[1].split(":")[0]))
+                print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                      process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid,
+                      math.floor(int(process.WorkingSetSize) / 1000000))
+                time.sleep(25)
+
+
+
+
+def killProcessByIndexAndTest(index):
+    targetLocated = False;
+    if (targetLocated == False):
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on localserver: ")
+
+            except:
+                print("index not found on local server")
+    if (targetLocated == False):
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on laptop server:")
+
+            except:
+                print("index not found on laptop server")
+    if (targetLocated == False):
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on leopard server:")
+
+            except:
+                print("index not found on local server")
+
+    if (targetLocated):
+        singleTestAGIV264(index)
+
+
+def killProcessByIndex(index):
+    targetLocated = False;
+    if (targetLocated == False):
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on localserver: ")
+
+            except:
+                print("index not found on local server")
+    if (targetLocated == False):
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on laptop server:")
+
+            except:
+                print("index not found on laptop server")
+    if (targetLocated == False):
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on leopard server:")
+
+            except:
+                print("index not found on local server")
+
+    if (targetLocated):
+        print("Target successfully killed!")
+
+
+def killProcessByIndexAndRelaunch(index):
+    targetLocated = False
+    if (targetLocated == False):
+        for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on localserver: ")
+                    targetOnLOCAL = True
+
+            except:
+                print("index not found on local server")
+    if (targetLocated == False):
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on laptop server:")
+                    targetOnLaptop = True
+
+            except:
+                print("index not found on laptop server")
+    if (targetLocated == False):
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+            try:
+                if (process.Commandline.split("0,0,0,")[1].split(":")[0] == str(index)):
+                    print((math.floor(int(process.UserModeTime) / 600000000)), process.CreationDate[6:8],
+                          process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid,
+                          math.floor(int(process.WorkingSetSize) / 1000000))
+                    print("Killing " + str(index))
+                    process.Terminate()
+                    targetLocated = True
+                    print("Oldest index found on leopard server:")
+                    targetOnMSI = True
+
+            except:
+                print("index not found on local server")
+
+    if (targetLocated and targetOnLOCAL):
+        singleRelaunchAGIV264(int(index))
+        time.sleep(10)
+        if str(index) not in readRunningAccIndexes():
+            print(str(index) + " " + "not running, relaunching local Again!")
+            singleRelaunchAGIV264(int(index))
+            time.sleep(3)
+
+    elif (targetLocated and targetOnLaptop):
+        singleLAPTOPRelaunchAGIV264(int(index))
+        time.sleep(10)
+        if str(index) not in readRunningAccIndexes():
+            print(str(index) + " " + "not running, relaunching laptop Again!")
+            singleLAPTOPRelaunchAGIV264(int(index))
+            time.sleep(3)
+
+    elif (targetLocated and targetOnMSI):
+        singleMSIRelaunchAGIV264(int(index))
+        time.sleep(10)
+        if str(index) not in readRunningAccIndexes():
+            print(str(index) + " " + "not running, relaunching MSI Again!")
+            singleMSIRelaunchAGIV264(int(index))
+            time.sleep(3)
+
+    else:
+        print("Failed to find target")
+
+
+def getOldestIndexRunning():
+    print("Local:")
+    data = []
+    x = {'key': 'value'}
+    x['mynewkey'] = 'mynewvalue'
+    x = {}
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        try:
+            # print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, math.floor(int(process.WorkingSetSize)/1000000) )
+            if (process.Commandline.find("1,1,0,1,0") != -1):
+                x[process.Commandline.split("0,0,0,")[1].split(":")[0]] = (
+                    math.floor(int(process.UserModeTime) / 600000000))
+        except:
+            print("Skipping")
+    print("MSILaptop:")
+    for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+        # print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid, math.floor(int(process.WorkingSetSize)/1000000))
+        x[process.Commandline.split("0,0,0,")[1].split(":")[0]] = (math.floor(int(process.UserModeTime) / 600000000))
+    print("Laptop")
+    for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+        # print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid, math.floor(int(process.WorkingSetSize)/1000000))
+        x[process.Commandline.split("0,0,0,")[1].split(":")[0]] = (math.floor(int(process.UserModeTime) / 600000000))
+        # x = {}
+    {k: v for k, v in sorted(x.items(), key=lambda item: item[0])}
+    # print(x)
+
+    print("Oldest index found:")
+    print(list(x.keys())[0])
+    print(len(x))
+    return int(list(x.keys())[0])
+
+
+# def getNewestIndexRunning():
+#     print("Local:")
+#     data = []
+#     x = {'key': 'value'}
+#     x['mynewkey'] = 'mynewvalue'
+#     x = {}
+
+#     tuppList = []
+#     for process in defineLocalServer().Win32_Process (name=ProcessEXEString):
+#         try:
+#             #print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, math.floor(int(process.WorkingSetSize)/1000000) )
+#             if(process.Commandline.find("1,1,0,1,0") != -1):
+#                 x[process.Commandline.split("0,0,0,")[1].split(":")[0]] = (math.floor(int(process.UserModeTime)/600000000))
+#                 tuppList.append(([process.Commandline.split("0,0,0,")[1].split(":")[0], math.floor(int(process.UserModeTime)/600000000))
+#         except:
+#             print("Skipping")
+#     print("MSILaptop:")
+#     for process in defineLeopardServer().Win32_Process (name=ProcessEXEString):
+
+#         #print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid, math.floor(int(process.WorkingSetSize)/1000000))
+#         x[process.Commandline.split("0,0,0,")[1].split(":")[0]] = (math.floor(int(process.UserModeTime)/600000000))
+#         tuppList.append(([process.Commandline.split("0,0,0,")[1].split(":")[0], (math.floor(int(process.UserModeTime)/600000000))
+#     print("Laptop")
+#     for process in defineLaptopServer().Win32_Process (name=ProcessEXEString):
+#         tuppList.append(([process.Commandline.split("0,0,0,")[1].split(":")[0], (math.floor(int(process.UserModeTime)/600000000))
+#         # print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, process.processid, math.floor(int(process.WorkingSetSize)/1000000))
+#         x[process.Commandline.split("0,0,0,")[1].split(":")[0]] = (math.floor(int(process.UserModeTime)/600000000))
+#     #x = {}
+#     {k: v for k, v in sorted(x.items(), key=lambda item: item[0])}
+#     sorteD = tuppList.sort(key=lambda x:x[0])
+#     print(sorteD)
+#     print(sorteD[0])
+#     #print(x)
+#     print("Oldest index found:")
+#     print(list(x.keys())[0])
+#     print(len(x))
+#     return int(list(x.keys())[0])
+
+def getLowestMemoryRunning():
+    print("Local:")
+    data = []
+    x = {'key': 'value'}
+    x['mynewkey'] = 'mynewvalue'
+    x = {}
+    y = {}
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        try:
+            # print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, math.floor(int(process.WorkingSetSize)/1000000) )
+            if (process.Commandline.find("1,1,0,1,0") != -1):
+                x[str(process.Commandline.split("0,0,0,")[1].split(":")[0])] = int(
+                    math.floor(int(process.WorkingSetSize) / 1000000))
+
+        except:
+            print(process.Commandline)
+            print("Skipping")
+    print("MSILaptop:")
+    try:
+        for process in defineLeopardServer().Win32_Process(name=ProcessEXEString):
+            x[str(process.Commandline.split("0,0,0,")[1].split(":")[0])] = int(
+                math.floor(int(process.WorkingSetSize) / 1000000))
+    except:
+        print(process.Commandline)
+
+    print("Laptop")
+    try:
+
+        for process in defineLaptopServer().Win32_Process(name=ProcessEXEString):
+            x[str(process.Commandline.split("0,0,0,")[1].split(":")[0])] = int(
+                math.floor(int(process.WorkingSetSize) / 1000000))
+    except:
+        print(process.Commandline)
+
+    y = [(k, v) for k, v in sorted(x.items(), key=lambda v: v[1])]
+
+    # print(y)
+    print("lowest memory index found:")
+
+    print(len(y))
+    print(y[0])
+
+    return y[0][0]
+
+
+def KillAndTestnLowestMemory(n):
+    for i in range(0, n):
+        killProcessByIndexAndTest(str(getLowestMemoryRunning()))
+        time.sleep(30)
+
+
+def KillAndTestnLowestLOCALMemory(n):
+    for i in range(0, n):
+        killProcessByIndexAndTest(str(getLowestLOCALMemoryRunning()))
+        time.sleep(30)
+
+
+def KillAndRelaunchnLowestMemory(n):
+    for i in range(0, n):
+        killProcessByIndexAndRelaunch(str(getLowestMemoryRunning()))
+        time.sleep(60)
+
+
+def getLowestLOCALMemoryRunning():
+    print("Local:")
+    data = []
+    x = {'key': 'value'}
+    x['mynewkey'] = 'mynewvalue'
+    x = {}
+    y = {}
+    for process in defineLocalServer().Win32_Process(name=ProcessEXEString):
+        try:
+            # print((math.floor(int(process.UserModeTime)/600000000)), process.CreationDate[6:8], process.Commandline.split("0,0,0,")[1].split(":")[0], process.processid, math.floor(int(process.WorkingSetSize)/1000000) )
+            if (process.Commandline.find("1,1,0,1,0") != -1):
+                x[str(process.Commandline.split("0,0,0,")[1].split(":")[0])] = int(
+                    math.floor(int(process.WorkingSetSize) / 1000000))
+
+        except:
+            print("Skipping")
+
+    y = [(k, v) for k, v in sorted(x.items(), key=lambda v: v[1])]
+
+    # print(y)
+    print("lowest memory index found:")
+
+    print(len(y))
+    print(y[0])
+
+    return y[0][0]
+
+
+
+def remove_empty_lines(filename):
+    """Overwrite the file, removing empty lines and lines that contain only whitespace."""
+    with open(filename, 'r+') as f:
+        lines = f.readlines()
+        f.seek(0)
+        f.writelines(line for line in lines if line.strip())
+        f.truncate()
+
+
+def writeToLog(line):
+    file_path = launchLogDirectory
+    with open(file_path, 'a') as file:
+        file.write(line + "\n")
+
+
+def delIndexFromAccCreatedFile(newAccount):
+    # read index from new account
+
+    index = index_containing_substring(readAccCreated(), str(newAccount))
+    if (index >= 0):
+        print("Removing " + str(index) + " " + "from created Account list")
+        a_file = open(PreparedAccListFile, "r")
+        # get list of lines
+
+        lines = a_file.readlines()
+        a_file.close()
+        # if(lines!="")
+        del lines[index]
+        # delete lines
+
+        new_file = open(PreparedAccListFile, "w+")
+        # write to file without line
+
+        for line in lines:
+            new_file.write(line)
+
+        new_file.close()
+    else:
+        print("Failed to find " + str(index) + " in created Account list")
+
+
+def delIndexFromAccCreatedFileOneHour(newAccount):
+    # read index from new account
+    #
+    index = index_containing_substring(readAccCreatedOneHour(), str(newAccount))
+    if (index >= 0):
+        print("Removing " + str(index) + " " + "from created Account list")
+        a_file = open(PreparedAccListFile+'one-hour',
+                      "r")
+        # get list of lines
+
+        lines = a_file.readlines()
+        a_file.close()
+        # if(lines!="")
+        del lines[index]
+        # delete lines
+
+        new_file = open(
+            PreparedAccListFile+'one-hour', "w+")
+        # write to file without line
+
+        for line in lines:
+            new_file.write(line)
+
+        new_file.close()
+    else:
+        print("Failed to find " + str(index) + " in created Account list")
+
+
+def index_containing_substring(the_list, substring):
+    for i, s in enumerate(the_list):
+        if substring in s:
+            return i
+    return -1
+
+
+def readAccCreated():
+    newlist = []
+    remove_empty_lines(PreparedAccListFile)
+    with open(PreparedAccListFile, 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def getNotification(msg):
+
+    notification.notify(
+        title='Here is the title',
+        message=str(msg),
+        app_name='readNewAccountEmailsAndAppend',
+        app_icon= PATHTOICON)
+
+
+def readNewAccountEmailsAndAppend(startIndex):
+    for i in range(0, 1000000):
+        a = read_email_from_gmail()
+        print(a)
+        Emailindexn = 2000
+        start = str(Emailindexn)
+        end = "@"
+
+        try:
+            latestIndexInEmail = int(a[0].split(OSBString.replace("'", ""))[1].split(end)[0])
+            print(latestIndexInEmail)
+        except:
+            latestIndexInEmail = 0
+            print("Failed to read acc, 0?")
+            getNotification("Failed to read acc, 0?")
+
+        if (latestIndexInEmail != 0):
+            status = appendMoreAccountsManually(0, startIndex, latestIndexInEmail)
+            print(status)
+        else:
+            status = 0
+        if (status == 0):
+            getNotification(status)
+
+        if (latestIndexInEmail != 0):
+            startIndex = latestIndexInEmail
+        time.sleep(300)
+
+
+def read_email_from_gmail():
+    try:
+        mail = imaplib.IMAP4_SSL(SMTP_SERVER)
+        mail.login(FROM_EMAIL, FROM_PWD)
+        mail.select('inbox')
+
+        type, data = mail.search(None, 'ALL')
+        mail_ids = data[0]
+
+        fullAccIndexList = []
+
+        id_list = mail_ids.split()
+
+        for i in reversed(id_list):
+            typ, data = mail.fetch(i, '(RFC822)')
+
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_string(response_part[1].decode('utf-8'))
+                    email_subject = msg['subject']
+                    email_from = msg['from']
+                    email_to = msg['to']
+                    fullAccIndexList.append(email_to)
+
+                    return fullAccIndexList
+
+    except IMAPClient.Error as err:
+        print(str(err))
+
+
+def deleteAlreadyRunningFromFileOneHour(RunningAccIndexes, preparedAccList):
+    for i in range(0, len(preparedAccList)):
+        try:
+            if (preparedAccList[i].split("-bot ".replace("'", ""))[1].split(":")[0] in RunningAccIndexes):
+                print(preparedAccList[i].split("-bot ".replace("'", ""))[1].split(":")[
+                          0] + " " + "found in runningAcc list, deleting from prepared file")
+                delIndexFromAccCreatedFileOneHour(preparedAccList[i].split("-bot ")[1].split(":")[0])
+        except:
+            if (preparedAccList[i].split(startNamed)[1].split(endNamed)[0] in RunningAccIndexes):
+                print(preparedAccList[i].split(startNamed)[1].split(endNamed)[
+                          0] + " " + "found in runningAcc list, deleting from prepared file")
+                delIndexFromAccCreatedFileOneHour(preparedAccList[i])
+
+    return preparedAccList
+
+
+def deleteAlreadyRunningFromFile(RunningAccIndexes, preparedAccList):
+    for i in range(0, len(preparedAccList)):
+        if (preparedAccList[i].split(":")[0] in RunningAccIndexes):
+            print(preparedAccList[i].split(":")[0] + " " + "found in runningAcc list, deleting from prepared file")
+            delIndexFromAccCreatedFile(preparedAccList[i])
+    return preparedAccList
+
+
+def deleteAlreadyRunningNamedFromFileOneHour(RunningAccIndexes, preparedAccList):
+    for i in range(0, len(preparedAccList)):
+        if (preparedAccList[i].split(OSBString.replace("'", ""))[1].split(end)[0] in RunningAccIndexes):
+            print(preparedAccList[i].split(OSBString.replace("'", ""))[1].split(end)[
+                      0] + " " + "found in runningAcc list, deleting from prepared file")
+            delIndexFromAccCreatedFileOneHour(preparedAccList[i])
+        elif (preparedAccList[i].split(startNamed)[1].split(endNamed)[0] in RunningAccIndexes):
+            print(preparedAccList[i].split(startNamed)[1].split(endNamed)[0] + " " + "found running!")
+            delIndexFromAccCreatedFileOneHour(preparedAccList[i])
+    return preparedAccList
+
+
+def readAccCreatedIntoPrepared():
+
+    return preparedAccListFromFile
+
+
+def readAccCreatedIntoPreparedOneHour():
+
+    return preparedAccListFromFile
+
+
+
+
+
+def prepareFreshAccountList():
+    display("PreparingFreshAccountList...readAccCreatedIntoPrepared")
+    preparedAccListFromFile = readAccCreatedIntoPrepared()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    display("DeletingAlreadyRunningFromFile")
+    preparedAccList = deleteAlreadyRunningFromFile(readRunningAccIndexes(), preparedAccList)
+    display("Reading acc created into prepared again")
+    preparedAccListFromFile = readAccCreatedIntoPrepared()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    print(str(len(preparedAccList)) + " " + "ready to enter launch cycle")
+    return preparedAccList
+
+
+def prepareFreshAccountListOneHour():
+    display("PreparingFreshAccountList...readAccCreatedIntoPrepared")
+    preparedAccListFromFile = readAccCreatedIntoPreparedOneHour()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    display("DeletingAlreadyRunningFromFile")
+    preparedAccList = deleteAlreadyRunningFromFileOneHour(readRunningAccIndexes(), preparedAccList)
+    display("Reading acc created into prepared again")
+    preparedAccListFromFile = readAccCreatedIntoPreparedOneHour()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    print(str(len(preparedAccList)) + " " + "ready to enter launch cycle")
+    return preparedAccList
+
+
+def readAccLaunchLog():
+    newlist = []
+    remove_empty_lines(launchLogDirectory)
+    with open(launchLogDirectory, 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def delIndexFromAccLaunchLog(newAccount):
+    # read index from new account
+    newAccount = str(newAccount)
+
+    index = index_containing_substring(readAccLaunchLog(), newAccount)
+
+    if (index >= 0):
+        print("Removing " + str(index) + " " + "from created Account list")
+        a_file = open(launchLogDirectory, "r")
+        # get list of lines
+
+        lines = a_file.readlines()
+        a_file.close()
+        # if(lines!="")
+        del lines[index]
+        # delete lines
+
+        new_file = open(launchLogDirectory, "w+")
+        # write to file without line
+
+        for line in lines:
+            new_file.write(line)
+
+        new_file.close()
+    else:
+        print("Failed to find " + str(index) + " " + str(newAccount) + " in created Account list")
+
+
+
+
+
+def prepend_line(file_name, line):
+    """ Insert given string as a new line at the beginning of a file """
+    # define name of temporary dummy file
+    dummy_file = file_name + '.bak'
+    # open original file in read mode and dummy file in write mode
+    with open(file_name, 'r') as read_obj, open(dummy_file, 'w') as write_obj:
+        # Write given line to the dummy file
+        write_obj.write(line + '\n')
+        # Read lines from original file one by one and append them to the dummy file
+        for line in read_obj:
+            write_obj.write(line)
+    # remove original file
+    os.remove(file_name)
+    # Rename dummy file as the original file
+    os.rename(dummy_file, file_name)
+
+
+def killByIndexAndRewrite(index):
+    print("Calling kill byandrewrite on " + str(index))
+    try:
+        killProcessByIndex(index)
+        appendToFrontMoreAccountsManuallyFromIndex(index)
+        # delIndexFromAccLaunchLog(index)
+    except:
+        print("Failed to kill or rewrite " + str(index))
+    # appendMoreAccountsManually(0, index, index+1)
+    # Remove index from acc launch log so its fresh
+    delIndexFromAccLaunchLog(index)
+
+
+def prepareFreshAccountListOneHour():
+    display("PreparingFreshAccountList...readAccCreatedIntoPrepared")
+    preparedAccListFromFile = readAccCreatedIntoPreparedOneHour()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    display("DeletingAlreadyRunningFromFile")
+    preparedAccList = deleteAlreadyRunningFromFileOneHour(readRunningAccIndexes(), preparedAccList)
+    display("Reading acc created into prepared again")
+    preparedAccListFromFile = readAccCreatedIntoPreparedOneHour()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    print(str(len(preparedAccList)) + " " + "ready to enter launch cycle")
+    return preparedAccList
+
+
+def prepareFreshAccountNamedListOneHour():
+    display("PreparingFreshAccountList...readAccCreatedIntoPrepared")
+    preparedAccListFromFile = readAccCreatedIntoPreparedNamedOneHour()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    display("DeletingAlreadyRunningFromFile")
+    preparedAccList = deleteAlreadyRunningFromFileOneHour(readRunningAccIndexes(), preparedAccList)
+    display("Reading acc created into prepared again")
+    preparedAccListFromFile = readAccCreatedIntoPreparedNamedOneHour()
+    preparedAccList = preparedAccListFromFile
+    # display(preparedAccList)
+    print(str(len(preparedAccList)) + " " + "ready to enter launch cycle")
+    return preparedAccList
+
+
+
+
+
+def manuallyLaunchFromAccCreatedOneHour(n):
+    for i in range(0, n):
+        preparedAccList = prepareFreshAccountListOneHour()
+        accIndex = preparedAccList[0].split("-bot ")[1].split(":")[0]
+        try:
+            singleTestAGIV264(accIndex)
+        except:
+            print(accIndex)
+        try:
+            delIndexFromAccCreatedFileOneHour(accIndex)
+        except:
+            print("failed to del " + accIndex)
+        try:
+            writeToLog(accIndex)
+        except:
+            print("Failed to write " + accIndex)
+        time.sleep(30)
+
+
+def manuallyLaunchNameFromAccCreatedOneHour(n):
+    for i in range(0, n):
+        preparedAccList = prepareFreshAccountNamedListOneHour()
+        try:
+            accIndex = preparedAccList[0].split("@")[0]
+        except:
+            accIndex = ''
+        # accIndex = preparedAccList[0].split(startNamed)[1].split(endNamed)[0]
+        accName = preparedAccList[0].split("@")[0]
+        try:
+            singleTestNamedAGIV264(accName, int(accIndex))
+        except:
+            singleTestNamedAGIV264(accName, accIndex)
+        delIndexFromAccCreatedFileOneHour(accName)
+        # writeToLog(accIndex)
+        time.sleep(30)
+
+
+def relaunchAllAndPrintMissing():
+    currentIndexes = readRunningAccIndexes()
+    failedRelaunchList = []
+    relaunchAll()
+    postIndexes = readRunningAccIndexes()
+    for i in currentIndexes:
+        if i not in postIndexes:
+            failedRelaunchList.append(i)
+    print(failedRelaunchList)
+    print(len(currentIndexes))
+    print(len(postIndexes))
+    print(len(failedRelaunchList))
+
+
+def getOneHourByIndex(index):
+    oneHours = readAccCreatedOneHour()
+    accIndex = (oneHours[index]).split(OSBString.replace("'", ""))[1].split(end)[0]
+    return accIndex
+
+
+
+
+def manuallyLaunchFromAccCreated(n):
+    for i in range(0, n):
+        preparedAccList = prepareFreshAccountList()
+        accIndex = preparedAccList[(len(preparedAccList) - 1)].split("-bot ")[1].split(":")[0]
+        try:
+            singleTestAGIV264(accIndex)
+
+        except:
+            print(accIndex)
+        try:
+            delIndexFromAccCreatedFile(accIndex)
+        except:
+            print("failed to del " + accIndex)
+        try:
+            writeToLog(accIndex)
+        except:
+            print("Failed to write " + accIndex)
+        time.sleep(30)
