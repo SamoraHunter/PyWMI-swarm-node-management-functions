@@ -11,37 +11,41 @@ Any usage is likely to vary dramatically, an example of a working system that ma
 
 Pseudo code of the deployment system:
 
-<pyWMI functions>
+    <import pyWMI functions>
 
-<Setting periodic timers>
-
-<Read in prepared nodes>
-
-<Read current state of nodes across defined servers>
-
-<Reading in external data to modify launch processes including log data outputted by nodes>
-
-    <Conditional procedure pass based on current state * state of prepared * periodic timers * external data variables>
-  
-    <Reading in external data to modify launch processes>
-  
-    <Read data assigned to each node through its command line parameters sent to the node>
-  
-    <Pass conditional checks and read global variables, enter launch cycle>
-  
-        <Locate server with capacity for additional node>
+    <Setting periodic timers>
     
-        <Deploy node to server and write to logs with UID + timestamps>
+    <Setting global variables>
     
-    <On conditions and periodic timer states enter additional processes>
-    
-        <Read WMI information on nodes>
-        
-            <Perform operations on nodes dependent on WMI information + globals + periodic timers + command line parameters>
-            
-<Periodic timer sleeps and continue loop>
+    <Read variables set by node outputs>
 
-<Write log information on nodes for data analysis and learning>
+    <Read in prepared nodes>
+
+    <Read current state of nodes across defined servers>
+
+    <Reading in external data to modify launch processes including log data outputted by nodes>
+
+        <Conditional procedure pass based on current state * state of prepared * periodic timers * external data variables>
+
+        <Reading in external data to modify launch processes>
+
+        <Read data assigned to each node through its command line parameters sent to the node>
+
+        <Pass conditional checks and read global variables, enter launch cycle>
+
+            <Locate server with capacity for additional node>
+
+            <Deploy node to server and write to logs with UID + timestamps>
+
+        <On conditions and periodic timer states enter additional processes>
+
+            <Read WMI information on nodes>
+
+                <Perform operations on nodes dependent on WMI information + globals + periodic timers + command line parameters>
+
+    <Periodic timer sleeps and continue loop>
+
+    <Write log information on nodes for data analysis and learning>
 
 
 
